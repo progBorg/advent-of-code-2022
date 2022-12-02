@@ -1,24 +1,19 @@
 #!/usr/bin/env python3
 import AoC2022
-import pkgutil
 
 
 def run():
-    # Find all subpackages in AoC2022
-    days = pkgutil.iter_modules(AoC2022.__path__)
-
-    for day in days:
-        # Skip this module if it is not a day
-        if not day.name.startswith('day'):
-            continue
-
+    for day in AoC2022.__all__:
         # Create and run the command that runs this day
-        cmd = f"AoC2022.{day.name}.run()"
-        output = eval(cmd)
+        try:
+            cmd = f"AoC2022.{day}.run()"
+            output = eval(cmd)
+        except BaseException as e:
+            output = f"ERROR: This day has an error: {type(e).__name__}"
 
         # Put the result in a nice string
         result = (
-            f"======={day.name} results========\n"
+            f"======={day} results========\n"
             f"{output}\n"
         )
 
