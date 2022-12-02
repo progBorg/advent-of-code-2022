@@ -1,8 +1,17 @@
 #!/usr/bin/env python3
 
+import os
+
+
 def get_input() -> str:
     """Read out input as a single string"""
-    with open('input.txt') as f:
+    # Get absolute path to input file
+    fname = 'input.txt'
+    this_file = os.path.abspath(__file__)
+    this_dir = os.path.dirname(this_file)
+    input_file = os.path.join(this_dir, fname)
+
+    with open(input_file) as f:
         return f.read()
 
 
@@ -25,7 +34,7 @@ def find_highest_sum(calories: list[list[int]]) -> int:
 
 def find_three_highest_sum(calories: list[list[int]]) -> int:
     """Find the three highest sums in the list of elves"""
-    max_sums = [0, 0, 0] # Ordered as highest value first
+    max_sums = [0, 0, 0]  # Ordered as the highest value first
     for elf in calories:
         for i, s in enumerate(max_sums):
             if sum(elf) > s:
@@ -37,13 +46,16 @@ def find_three_highest_sum(calories: list[list[int]]) -> int:
     return sum(max_sums)
 
 
-if __name__ == "__main__":
-    print("Highest sum of calories:")
-    print(find_highest_sum(
-        process_input(get_input())
-    ))
+def run() -> str:
+    calories = process_input(get_input())
+    output = (
+        "Highest sum of calories:\n"
+        f"    {find_highest_sum(calories)}\n"
+        "Three highest sums of calories combined:\n"
+        f"    {find_three_highest_sum(calories)}"
+    )
+    return output
 
-    print("Three highest sums of calories combined:")
-    print(find_three_highest_sum(
-        process_input(get_input())
-    ))
+
+if __name__ == "__main__":
+    print(run())
