@@ -3,6 +3,8 @@
 import os
 import re
 
+CD = 0
+LS = 1
 
 def get_input() -> str:
     """Read out input as a single string"""
@@ -44,10 +46,20 @@ def get_input() -> str:
         return f.read()
 
 
-def process_input(input_str: str) -> list[any]:
+def process_input(input_str: str) -> list[list[int, any]]:
     commands = []
     for single_command in re.split("\$ ", input_str):
         lines = single_command.splitlines()
+        cmd = lines[0].split() if len(lines) > 0 else ['']
+        if cmd[0] == 'cd':
+            command = [CD, cmd[1]]
+        elif cmd[0] == 'ls':
+            command = [LS, lines[1:]]
+        else:
+            # No known command, so also don't append to list
+            continue
+
+        commands.append(command)
 
     return commands
 
