@@ -3,8 +3,9 @@
 import os
 import re
 
-CD = 0
-LS = 1
+CD: int = 0
+LS: int = 1
+DIR: int = -1
 
 def get_input() -> str:
     """Read out input as a single string"""
@@ -54,7 +55,14 @@ def process_input(input_str: str) -> list[list[int, any]]:
         if cmd[0] == 'cd':
             command = [CD, cmd[1]]
         elif cmd[0] == 'ls':
-            command = [LS, lines[1:]]
+            contents = []
+            for node in lines[1:]:
+                node_type, *name = node.split()
+                if node_type == 'dir':
+                    node_type = DIR
+                contents.append([int(node_type), ' '.join(name)])
+
+            command = [LS, contents]
         else:
             # No known command, so also don't append to list
             continue
@@ -64,12 +72,17 @@ def process_input(input_str: str) -> list[list[int, any]]:
     return commands
 
 
-def find_directory_size(commands: dict[str, str]) -> int:
-    return -1
+def find_directory_size(commands: dict) -> int:
+    fs = create_filesystem_structure(commands)
+
+
+def create_filesystem_structure(commands: list[list[int, any]]) -> dict:
+    pass
 
 
 def run() -> str:
     commands = process_input(get_input())
+    return commands
     return (
         f"Total size of directories: {find_directory_size(commands)}\n"
         # f"Start of first message is at character: {find_first_marker(charstream, 14)}\n"
