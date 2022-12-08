@@ -35,7 +35,7 @@ def get_input() -> str:
         "5626152 d.ext\n"
         "7214296 k\n"
     )
-    return prac
+    # return prac
 
     # Get absolute path to input file
     fname = 'input.txt'
@@ -72,20 +72,107 @@ def process_input(input_str: str) -> list[list[int, any]]:
     return commands
 
 
-def find_directory_size(commands: dict) -> int:
+def find_fs_size(commands: list[list[int, any]], max_size: int = -1) -> tuple[int, int]:
+    """Return cumulative sum of directory sizes, and total filesystem size"""
     fs = create_filesystem_structure(commands)
+    pwd = fs
+    pwd_parents = []
+    cum_fs_size = 0
+    pwd_parent_key = []
+    dir_size = 0
+    while isinstance(fs, dict):
+        # Find a directory entry in current directory
+        for key, node in pwd.items():
+            if isinstance(node, dict):
+                # If this node is a directory, enter it and start again
+                pwd_parents.append(pwd)
+                pwd = node
+                pwd_parent_key.append(key)
+                break
+
+        else:
+            # Run this if no directories were found (no break was issued)
+            dir_size = sum(pwd.values())
+            pwd = pwd_parents.pop()
+            if pwd_parent_key[-1] == '/':
+                fs = dir_size
+            else:
+                pwd[pwd_parent_key.pop()] = dir_size
+
+            if max_size < 0 or dir_size < max_size:
+                cum_fs_size += dir_size
+
+    # The last dir_size value is the size of /, that is the size of the entire filesystem
+    return cum_fs_size, dir_size
 
 
 def create_filesystem_structure(commands: list[list[int, any]]) -> dict:
-    pass
+    fs = {'/': {}}
+    pwd = fs
+    pwd_parents = []
+    for cmd in commands:
+        if cmd[0] == CD:
+            if cmd[1] == '..':
+                pwd = pwd_parents.pop()
+            else:
+                # Everything is passed by reference, so updating values in pwd also updates fs
+                pwd_parents.append(pwd)
+                pwd = pwd[cmd[1]]
+        elif cmd[0] == LS:
+            for node in cmd[1]:
+                if node[0] == DIR:
+                    pwd[node[1]] = {}
+                else:
+                    pwd[node[1]] = node[0]
+
+    return fs
+
+
+def find_directory_for_deletion(commands: list[list[int, any]], required_space: int) -> str:
+    fs = create_filesystem_structure(commands)
+    device_size = 70000000
+    _, fs_size = find_fs_size(commands)
+    needed_space = required_space - (device_size - fs_size)
+    if needed_space <= 0:
+        # No space needs to be freed, so don't return any directory
+        return ''
+
+    pwd = fs
+    pwd_parents = []
+    pwd_parent_key = []
+    del_dir_size = fs_size
+    while isinstance(fs, dict):
+        # Find a directory entry in current directory
+        for key, node in pwd.items():
+            if isinstance(node, dict):
+                # If this node is a directory, enter it and start again
+                pwd_parents.append(pwd)
+                pwd = node
+                pwd_parent_key.append(key)
+                break
+
+        else:
+            # Run this if no directories were found (no break was issued)
+            dir_size = sum(pwd.values())
+            pwd = pwd_parents.pop()
+            if pwd_parent_key[-1] == '/':
+                fs = dir_size
+            else:
+                pwd[pwd_parent_key.pop()] = dir_size
+
+            if needed_space < dir_size < del_dir_size:
+                del_dir_size = dir_size
+
+    return del_dir_size
 
 
 def run() -> str:
     commands = process_input(get_input())
-    return commands
+    max_size = 100000
+    required_space = 30000000
     return (
-        f"Total size of directories: {find_directory_size(commands)}\n"
-        # f"Start of first message is at character: {find_first_marker(charstream, 14)}\n"
+        f"Total size of directories: {find_fs_size(commands, max_size)[0]}\n"
+        f"Size of smallest directory for deletion: {find_directory_for_deletion(commands, required_space)}\n"
     )
 
 
