@@ -9,7 +9,7 @@ def run():
             cmd = f"AoC2022.{day}.run()"
             output = eval(cmd)
         except BaseException as e:
-            output = f"ERROR: This day has an error: {type(e).__name__}"
+            output = f"ERROR: This day has an error: {type(e).__name__}{f': {str(e)}' if len(str(e)) > 0 else ''}"
 
         # Put the result in a nice string
         result = (
